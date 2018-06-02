@@ -1,6 +1,6 @@
 # titanic survived prediction
 
 
-  (kaggle链接](https://www.kaggle.com/c/titanic)
+  (kaggle链接)[https://www.kaggle.com/c/titanic]
 
  

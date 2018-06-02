@@ -44,8 +44,10 @@ class TitanicData(object):
                 row["Fare"],
                 self._transfer_carbin(row["Cabin"]),
                 self._transfer_emparked_port(row["Embarked"])
-            ]) 
-            label.append(row["Survived"])
+            ])
+            prob = np.zeros(shape=2, dtype=np.float32)
+            prob[row["Survived"]] = 1.0
+            label.append(prob)
         self.train_feature = np.array(feature)
         self.train_label = np.array(label)
         feature = []
@@ -63,7 +65,8 @@ class TitanicData(object):
             ])
         self.test_feature = np.array(feature)
        
-    def _transfer_sex(self, sex):
+    @staticmethod
+    def _transfer_sex(sex):
         if sex == "male":
             return 1
         elif sex == "female":
@@ -71,14 +74,15 @@ class TitanicData(object):
         else:
             raise Exception("invalid sex vaue: " + sex)
 
-    def _normal_age(self, age):
+    @staticmethod
+    def _normal_age(age):
         if pd.isna(age):
             return 0
         else:
             return int(age)
 
     def _transfer_carbin(self, carbin):
-        if self.carbin_idx.has_key(carbin):
+        if carbin in self.carbin_idx:
             return self.carbin_idx[carbin]
         elif pd.isna(carbin):
             return 0
@@ -87,7 +91,8 @@ class TitanicData(object):
             self.carbin_idx[carbin] = self.carbin_count
             return self.carbin_idx[carbin]
 
-    def _transfer_emparked_port(self, port):
+    @staticmethod
+    def _transfer_emparked_port(port):
         if pd.isna(port):
             return 0
         elif port == "C":
@@ -98,4 +103,3 @@ class TitanicData(object):
             return 3
         else:
             raise Exception("invalid port: " + str(port))
-

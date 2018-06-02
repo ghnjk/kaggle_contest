@@ -13,7 +13,9 @@ def show_pclass_distribution(data):
     for c in np.unique(p_class):
         s_count = np.sum(is_survived[p_class == c])
         all_count = np.sum(p_class == c)
-        name_list.append("Pclass: %s s_rate: %0.2lf" % (str(int(c)), s_count / float(all_count)))
+        name_list.append("Pclass: %s s_rate: %0.2lf" % (
+            str(int(c)), float(s_count) / float(all_count)
+        ))
         survied_list.append(s_count)
         count_list.append(all_count)
     plt.figure()
@@ -40,7 +42,8 @@ def show_sex_distribution(data):
         count_list.append(all_count)
     plt.figure()
     plt.bar(range(len(name_list)), survied_list, label="Survived", fc='g', align="center")
-    plt.bar(range(len(name_list)), np.array(count_list) - np.array(survied_list), bottom=survied_list, label="all", tick_label=name_list, fc='r', align="center")
+    plt.bar(range(len(name_list)), np.array(count_list) - np.array(survied_list),
+            bottom=survied_list, label="all", tick_label=name_list, fc='r', align="center")
     plt.legend()
     plt.title("Survived distribution by Sex")
 
@@ -60,7 +63,8 @@ def show_age_distribution(data):
         count_list.append(all_count)
     plt.figure()
     plt.bar(range(len(name_list)), survied_list, label="Survived", fc='g', align="center")
-    plt.bar(range(len(name_list)), np.array(count_list) - np.array(survied_list), bottom=survied_list, label="all", tick_label=name_list, fc='r', align="center")
+    plt.bar(range(len(name_list)), np.array(count_list) - np.array(survied_list),
+            bottom=survied_list, label="all", tick_label=name_list, fc='r', align="center")
     plt.legend()
     plt.title("Survived distribution by Age")
 
@@ -81,7 +85,8 @@ def show_sibsp_distribution(data):
         count_list.append(all_count)
     plt.figure()
     plt.bar(range(len(name_list)), survied_list, label="Survived", fc='g', align="center")
-    plt.bar(range(len(name_list)), np.array(count_list) - np.array(survied_list), bottom=survied_list, label="all", tick_label=name_list, fc='r', align="center")
+    plt.bar(range(len(name_list)), np.array(count_list) - np.array(survied_list),
+            bottom=survied_list, label="all", tick_label=name_list, fc='r', align="center")
     plt.legend()
     plt.title("Survived distribution by SibSp")
 
@@ -162,4 +167,3 @@ def preview_data():
 
 if __name__ == '__main__':
     preview_data()
-

@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 from data_loader import TitanicData
 import numpy as np
 import matplotlib.pyplot as plt 
@@ -6,7 +8,7 @@ import matplotlib.pyplot as plt
 def show_pclass_distribution(data):
     idx = data.feature_index["Pclass"]
     p_class = data.train_feature[:, idx].reshape(-1)
-    is_survived = data.train_label[:].reshape(-1)
+    is_survived = data.train_survived[:].reshape(-1)
     name_list = []
     survied_list = []
     count_list = []
@@ -29,7 +31,7 @@ def show_sex_distribution(data):
     sex_name = ["female", "male"]
     idx = data.feature_index["Sex"]
     feature = data.train_feature[:, idx].reshape(-1)
-    is_survived = data.train_label[:].reshape(-1)
+    is_survived = data.train_survived[:].reshape(-1)
     name_list = []
     survied_list = []
     count_list = []
@@ -50,15 +52,15 @@ def show_sex_distribution(data):
 
 def show_age_distribution(data):
     idx = data.feature_index["Age"]
-    feature = (data.train_feature[:, idx].reshape(-1) / 10).astype(int)
-    is_survived = data.train_label[:].reshape(-1)
+    feature = (data.train_feature[:, idx].reshape(-1)).astype(int)
+    is_survived = data.train_survived[:].reshape(-1)
     name_list = []
     survied_list = []
     count_list = []
     for c in np.unique(feature):
         s_count = np.sum(is_survived[feature == c])
         all_count = np.sum(feature == c)
-        name_list.append("Age: %s" % (str(c * 10))) 
+        name_list.append("Age: %s" % (str(c)))
         survied_list.append(s_count)
         count_list.append(all_count)
     plt.figure()
@@ -72,7 +74,7 @@ def show_age_distribution(data):
 def show_sibsp_distribution(data):
     idx = data.feature_index["SibSp"]
     feature = data.train_feature[:, idx].reshape(-1)
-    is_survived = data.train_label[:].reshape(-1)
+    is_survived = data.train_survived[:].reshape(-1)
     name_list = []
     survied_list = []
     count_list = []
@@ -94,7 +96,7 @@ def show_sibsp_distribution(data):
 def show_parch_distribution(data):
     idx = data.feature_index["Parch"]
     feature = data.train_feature[:, idx].reshape(-1)
-    is_survived = data.train_label[:].reshape(-1)
+    is_survived = data.train_survived[:].reshape(-1)
     name_list = []
     survied_list = []
     count_list = []
@@ -114,15 +116,15 @@ def show_parch_distribution(data):
 
 def show_fare_distribution(data):
     idx = data.feature_index["Fare"]
-    feature = (data.train_feature[:, idx].reshape(-1) / 20).astype(int)
-    is_survived = data.train_label[:].reshape(-1)
+    feature = (data.train_feature[:, idx].reshape(-1)).astype(int)
+    is_survived = data.train_survived[:].reshape(-1)
     name_list = []
     survied_list = []
     count_list = []
     for c in np.unique(feature):
         s_count = np.sum(is_survived[feature == c])
         all_count = np.sum(feature == c)
-        name_list.append("Fare: %s" % (str(c * 10))) 
+        name_list.append("Fare: %s" % (str(c)))
         survied_list.append(s_count)
         count_list.append(all_count)
     plt.figure()
@@ -135,7 +137,7 @@ def show_fare_distribution(data):
 def show_embarked_distribution(data):
     idx = data.feature_index["Embarked"]
     feature = data.train_feature[:, idx].reshape(-1)
-    is_survived = data.train_label[:].reshape(-1)
+    is_survived = data.train_survived[:].reshape(-1)
     name_list = []
     survied_list = []
     count_list = []
@@ -153,8 +155,52 @@ def show_embarked_distribution(data):
     plt.title("Survived distribution by Embarked")
 
 
+def show_carbin_distribution(data):
+    idx = data.feature_index["Cabin"]
+    feature = data.train_feature[:, idx].reshape(-1)
+    is_survived = data.train_survived[:].reshape(-1)
+    name_list = []
+    survied_list = []
+    count_list = []
+    for c in np.unique(feature):
+        c = int(c)
+        s_count = np.sum(is_survived[feature == c])
+        all_count = np.sum(feature == c)
+        name_list.append("Cabin: %s" % (str(c)))
+        survied_list.append(s_count)
+        count_list.append(all_count)
+    plt.figure()
+    plt.bar(range(len(name_list)), survied_list, label="Survived", fc='g', align="center")
+    plt.bar(range(len(name_list)), np.array(count_list) - np.array(survied_list), bottom=survied_list, label="all", tick_label=name_list, fc='r', align="center")
+    plt.legend()
+    plt.title("Survived distribution by Cabin")
+
+
+def show_title_distribution(data):
+    idx = data.feature_index["Title"]
+    feature = data.train_feature[:, idx].reshape(-1)
+    is_survived = data.train_survived[:].reshape(-1)
+    name_list = []
+    survied_list = []
+    count_list = []
+    for c in np.unique(feature):
+        c = int(c)
+        s_count = np.sum(is_survived[feature == c])
+        all_count = np.sum(feature == c)
+        name_list.append("Title: %s" % (str(c)))
+        survied_list.append(s_count)
+        count_list.append(all_count)
+    plt.figure()
+    plt.bar(range(len(name_list)), survied_list, label="Survived", fc='g', align="center")
+    plt.bar(range(len(name_list)), np.array(count_list) - np.array(survied_list), bottom=survied_list, label="all", tick_label=name_list, fc='r', align="center")
+    plt.legend()
+    plt.title("Survived distribution by Title")
+
+
 def preview_data():
     data = TitanicData()
+    print(data.train_df.info())
+    print(data.test_df.info())
     show_pclass_distribution(data)
     show_sex_distribution(data)
     show_age_distribution(data)
@@ -162,6 +208,8 @@ def preview_data():
     show_parch_distribution(data)
     show_fare_distribution(data)
     show_embarked_distribution(data)
+    show_carbin_distribution(data)
+    show_title_distribution(data)
     plt.show()
 
 

@@ -1,4 +1,6 @@
-from data_loader import TitanicData 
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from data_loader import TitanicData
 from model import TitanicModel
 import pandas as pd
 

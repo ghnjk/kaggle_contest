@@ -1,10 +1,12 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 import tensorflow as tf
 import numpy as np
 
 
 class TitanicModel(object):
 
-    def __init__(self, learning_rate=0.001):
+    def __init__(self, learning_rate=0.0001):
         self.learning_rate = learning_rate
 
         # tf inputs
@@ -15,6 +17,9 @@ class TitanicModel(object):
         self.tf_fare = None
         self.tf_sibsp = None
         self.tf_parch = None
+        self.tf_cabin = None
+        self.tf_title = None
+        self.tf_family_size = None
         self.tf_survived = None
         # tf processing
         self.tf_physical_feature = None
@@ -29,7 +34,9 @@ class TitanicModel(object):
         self._build_net()
         self.sess.run(tf.global_variables_initializer())
 
-    def train(self, data, max_epoch=30000, batch_size=64):
+    def train(self, data, max_epoch=100000, batch_size=64):
+        accuracy_his = []
+        loss_his = []
         for epoch in range(max_epoch):
             feature, label = data.next_train_batch(batch_size)
             feed_dict = {
@@ -40,6 +47,9 @@ class TitanicModel(object):
                 self.tf_fare: feature[:, data.feature_index["Fare"]],
                 self.tf_sibsp: feature[:, data.feature_index["SibSp"]],
                 self.tf_parch: feature[:, data.feature_index["Parch"]],
+                self.tf_cabin: feature[:, data.feature_index["Cabin"]],
+                self.tf_title: feature[:, data.feature_index["Title"]],
+                self.tf_family_size: feature[:, data.feature_index["FamilySize"]],
                 self.tf_survived: label
             }
             _, loss, prediction = self.sess.run([
@@ -50,7 +60,12 @@ class TitanicModel(object):
             real = np.argmax(label, axis=1)
             prediction = np.argmax(prediction, axis=1)
             succ_count = np.sum(real == prediction)
-            print("epoch", epoch, "loss:", loss, "accuracy: ", succ_count / float(batch_size))
+            loss_his.append(loss)
+            accuracy_his.append(succ_count / float(batch_size))
+            if epoch % 200 == 0:
+                print("epoch", epoch, "loss:", np.mean(loss_his), "accuracy: ", np.mean(accuracy_his))
+                loss_his = []
+                accuracy_his = []
 
     def predict(self, data):
         feature = data.test_feature
@@ -62,6 +77,9 @@ class TitanicModel(object):
             self.tf_fare: feature[:, data.feature_index["Fare"]],
             self.tf_sibsp: feature[:, data.feature_index["SibSp"]],
             self.tf_parch: feature[:, data.feature_index["Parch"]],
+            self.tf_cabin: feature[:, data.feature_index["Cabin"]],
+            self.tf_title: feature[:, data.feature_index["Title"]],
+            self.tf_family_size: feature[:, data.feature_index["FamilySize"]]
         }
         prediction = self.sess.run(self.tf_predict_survived_probs, feed_dict=feed_dict)
         prediction = np.argmax(prediction, axis=1)
@@ -69,20 +87,21 @@ class TitanicModel(object):
 
     def _build_net(self):
         self.tf_survived = tf.placeholder(tf.float32, shape=[None, 2], name="suvived")
+        self.tf_title = tf.placeholder(tf.float32, shape=[None, ], name="title")
+
         with tf.variable_scope("physical_feature"):
             with tf.variable_scope("inputs"):
                 self.tf_age = tf.placeholder(tf.float32, shape=[None, ], name="age")
                 self.tf_sex = tf.placeholder(tf.float32, shape=[None, ], name="sex")
-                self.tf_embarked = tf.placeholder(tf.float32, shape=[None, ], name="embarked")
                 batch_size = tf.shape(self.tf_age)[0]
             physical_feature = tf.concat([
                 tf.reshape(self.tf_age, [batch_size, 1]),
                 tf.reshape(self.tf_sex, [batch_size, 1]),
-                tf.reshape(self.tf_embarked, [batch_size, 1])
+                tf.reshape(self.tf_title, [batch_size, 1])
             ], axis=1, name="stack_all_physical_inputs")
             physical_feature = tf.layers.dense(
                 inputs=physical_feature,
-                units=64,
+                units=32,
                 activation=tf.nn.tanh,
                 name="physical_value"
             )
@@ -92,13 +111,18 @@ class TitanicModel(object):
             with tf.variable_scope("inputs"):
                 self.tf_pclass = tf.placeholder(tf.float32, shape=[None, ], name="pclass")
                 self.tf_fare = tf.placeholder(tf.float32, shape=[None, ], name="fare")
+                self.tf_embarked = tf.placeholder(tf.float32, shape=[None, ], name="embarked")
+                self.tf_cabin = tf.placeholder(tf.float32, shape=[None, ], name="cabin")
             economic_feature = tf.concat([
                 tf.reshape(self.tf_pclass, [batch_size, 1]),
-                tf.reshape(self.tf_fare, [batch_size, 1])
+                tf.reshape(self.tf_fare, [batch_size, 1]),
+                tf.reshape(self.tf_embarked, [batch_size, 1]),
+                tf.reshape(self.tf_cabin, [batch_size, 1]),
+                tf.reshape(self.tf_title, [batch_size, 1])
             ], axis=1, name="stack_all_economic_inputs")
             economic_feature = tf.layers.dense(
                 inputs=economic_feature,
-                units=64,
+                units=32,
                 activation=tf.nn.tanh,
                 name="economic_value"
             )
@@ -108,23 +132,38 @@ class TitanicModel(object):
             with tf.variable_scope("inputs"):
                 self.tf_sibsp = tf.placeholder(tf.float32, shape=[None, ], name="sibsp")
                 self.tf_parch = tf.placeholder(tf.float32, shape=[None, ], name="parch")
+                self.tf_family_size = tf.placeholder(tf.float32, shape=[None, ], name="FamilySize")
             relation_feature = tf.concat([
                 tf.reshape(self.tf_sibsp, [batch_size, 1]),
-                tf.reshape(self.tf_parch, [batch_size, 1])
+                tf.reshape(self.tf_parch, [batch_size, 1]),
+                tf.reshape(self.tf_family_size, [batch_size, 1])
             ], axis=1, name="stack_all_relation_inputs")
             relation_feature = tf.layers.dense(
                 inputs=relation_feature,
-                units=64,
+                units=32,
                 activation=tf.nn.tanh,
                 name="relation_value"
             )
             self.tf_relation_feature = relation_feature
 
+        with tf.variable_scope("genderman_feature"):
+            genderman_feature = tf.concat([
+                tf.reshape(self.tf_sex, [batch_size, 1]),
+                tf.reshape(self.tf_pclass, [batch_size, 1])
+            ], axis=1, name="sex_pclass")
+            genderman_feature = tf.layers.dense(
+                inputs=genderman_feature,
+                units=32,
+                activation=tf.nn.tanh,
+                name="genderman_value"
+            )
+
         with tf.variable_scope("survived_probability"):
             prediction = tf.concat([
                 self.tf_physical_feature,
                 self.tf_economic_feature,
-                self.tf_relation_feature
+                self.tf_relation_feature,
+                genderman_feature
             ], axis=1, name="concat_all_feature_values")
             prediction = tf.layers.dense(
                 inputs=prediction,
